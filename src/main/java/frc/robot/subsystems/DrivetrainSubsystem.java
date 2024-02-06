@@ -31,6 +31,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -161,31 +162,46 @@ public class DrivetrainSubsystem extends SubsystemBase {
 			getGyroscopeRotation(),
 			getModulePositions(),
 			DRIVE_ODOMETRY_ORIGIN);
-		}
+	}
+	
+	/**
+	 * @return True if the current alliance is red. Defaults False.
+	 */
+	public Boolean isRedAlliance() {
+		var alliance = DriverStation.getAlliance();
+		if (alliance.isPresent()) {
+			return alliance.get() == DriverStation.Alliance.Red;
+		} else
+			return false;
+	}
 	/**
 	 * Sets the gyroscope angle to zero. This can be used to set the direction the robot is currently facing to the
 	 * 'forwards' direction.
 	 */
 	public void zeroGyroscope() {
-		pigeon.setYaw(0); //TODO make sure this is right for both alliances
-		odometer.resetPosition(new Rotation2d(), getModulePositions(), new Pose2d(getPose().getTranslation(), new Rotation2d()));
+		this.zeroGyroscope(0.0);
 	}
 	public void zeroGyroscope(double angleDeg) {
-		pigeon.setYaw(angleDeg);
-		new Rotation2d();
-		new Rotation2d();
-		odometer.resetPosition(Rotation2d.fromDegrees(angleDeg), getModulePositions(), new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(angleDeg)));
+		Rotation2d newAngle = Rotation2d.fromDegrees(angleDeg);
+		if (isRedAlliance()) {//flip the robot in red alliance
+			newAngle.rotateBy(Rotation2d.fromDegrees(180));
+		}
+		odometer.resetPosition(pigeon.getRotation2d(), getModulePositions(), new Pose2d(getPose().getTranslation(), newAngle));
 	}
+	/**
+	 * @return the heading of the robot, but only out of 360, not accumulative
+	 */
 	public double getHeadingLooped() {
-		//returns the heading of the robot, but only out of 360, not accumulative
-		accumulativeLoops = (int) (getHeadingDegrees()/180); //finding the amount of times that 360 goes into the heading, as an int
-		return getHeadingDegrees()-180*(accumulativeLoops); 
+		// accumulativeLoops = (int) (getHeadingDegrees()/180); //finding the amount of times that 360 goes into the heading, as an int
+		// return getHeadingDegrees()-180*(accumulativeLoops); 
+		return MathUtil.inputModulus(getHeadingDegrees(), -180, 180);
 	}
+
 	public Rotation2d getGyroscopeRotation() {
-		return pigeon.getRotation2d();
+		return getPose().getRotation();
 	}
 	public double getHeadingDegrees() {
-		return pigeon.getAngle();
+		return getGyroscopeRotation().getDegrees();
 	}
 	public ChassisSpeeds getChassisSpeeds() {
 		return kinematics.toChassisSpeeds(getModuleStates());
@@ -204,11 +220,10 @@ public class DrivetrainSubsystem extends SubsystemBase {
 		return odometer.getEstimatedPosition();
 	}
     public void resetOdometry(Pose2d pose) {
-		zeroGyroscope(pose.getRotation().getDegrees());
-        odometer.resetPosition(pose.getRotation(), getModulePositions(), pose);
+        odometer.resetPosition(getGyroscopeRotation(), getModulePositions(), pose);
     }
     public void resetOdometry() {
-        odometer.resetPosition(getGyroscopeRotation(), getModulePositions(), DRIVE_ODOMETRY_ORIGIN);
+		resetOdometry(DRIVE_ODOMETRY_ORIGIN);
     }
 	/**
 	 *  Sets the modules speed and rotation to zero.
@@ -226,7 +241,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
 	}
 	public void drive(ChassisSpeeds chassisSpeeds) {
 		// SwerveModuleState[] desiredStates = kinematics.toSwerveModuleStates(chassisSpeeds);
-		SwerveModuleState[] desiredStates = kinematics.toSwerveModuleStates(ChassisSpeeds.discretize(chassisSpeeds, 0.02)); //TODO see if this works as expected
+		SwerveModuleState[] desiredStates = kinematics.toSwerveModuleStates(ChassisSpeeds.discretize(chassisSpeeds, 0.02));
 		double maxSpeed = Collections.max(Arrays.asList(desiredStates)).speedMetersPerSecond;
 		if (maxSpeed <= DriveConstants.DRIVE_DEADBAND_MPS) {
 			for (int i = 0; i < 4; i++) {

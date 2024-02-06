@@ -2,8 +2,11 @@ package frc.robot.commands;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntSupplier;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.settings.Constants.DriveConstants;
 import frc.robot.subsystems.DrivetrainSubsystem;
@@ -14,17 +17,26 @@ public class Drive extends Command {
     private final DoubleSupplier translationXSupplier;
     private final DoubleSupplier translationYSupplier;
     private final DoubleSupplier rotationSupplier;
-    
+    private final IntSupplier allianceOffsetSupplier;
+
     public Drive(DrivetrainSubsystem drivetrainSubsystem,
-    BooleanSupplier robotCentricMode,
-    DoubleSupplier translationXSupplier,
-    DoubleSupplier translationYSupplier,
-    DoubleSupplier rotationSupplier) {
+            BooleanSupplier robotCentricMode,
+            DoubleSupplier translationXSupplier,
+            DoubleSupplier translationYSupplier,
+            DoubleSupplier rotationSupplier) {
         this.drivetrain = drivetrainSubsystem;
         this.robotCentricMode = robotCentricMode;
         this.translationXSupplier = translationXSupplier;
         this.translationYSupplier = translationYSupplier;
         this.rotationSupplier = rotationSupplier;
+
+        this.allianceOffsetSupplier = () -> {
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent()) {
+                return (alliance.get() == DriverStation.Alliance.Red ? -1 : 1);
+            }
+            return 1;
+        };
         addRequirements(drivetrainSubsystem);
     }
     @Override
@@ -32,17 +44,17 @@ public class Drive extends Command {
         // You can use `new ChassisSpeeds(...)` for robot-oriented movement instead of field-oriented movement
         if (robotCentricMode.getAsBoolean()) {
             drivetrain.drive(new ChassisSpeeds(
-                translationXSupplier.getAsDouble() * DriveConstants.MAX_VELOCITY_METERS_PER_SECOND,
-                translationYSupplier.getAsDouble() * DriveConstants.MAX_VELOCITY_METERS_PER_SECOND,
-                rotationSupplier.getAsDouble() * DriveConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
+                    translationXSupplier.getAsDouble() * DriveConstants.MAX_VELOCITY_METERS_PER_SECOND,
+                    translationYSupplier.getAsDouble() * DriveConstants.MAX_VELOCITY_METERS_PER_SECOND,
+                    rotationSupplier.getAsDouble() * DriveConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
             ));
         } else {
             drivetrain.drive(
-                ChassisSpeeds.fromFieldRelativeSpeeds(
-                    translationXSupplier.getAsDouble() * DriveConstants.MAX_VELOCITY_METERS_PER_SECOND,
-                    translationYSupplier.getAsDouble() * DriveConstants.MAX_VELOCITY_METERS_PER_SECOND,
-                    rotationSupplier.getAsDouble() * DriveConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
-                    drivetrain.getGyroscopeRotation()
+                    ChassisSpeeds.fromFieldRelativeSpeeds(
+                            translationXSupplier.getAsDouble() * DriveConstants.MAX_VELOCITY_METERS_PER_SECOND * allianceOffsetSupplier.getAsInt(),
+                            translationYSupplier.getAsDouble() * DriveConstants.MAX_VELOCITY_METERS_PER_SECOND * allianceOffsetSupplier.getAsInt(),
+                            rotationSupplier.getAsDouble() * DriveConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
+                            drivetrain.getGyroscopeRotation()
                 )
             );
         }

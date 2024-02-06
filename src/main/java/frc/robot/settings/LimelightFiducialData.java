@@ -24,11 +24,7 @@ public class LimelightFiducialData {
             this.isResultValid = valid;
         }
         public Pose2d getbotPose(){
-            if(DriverStation.getAlliance().equals(Alliance.Red)){
-                return llresults.getBotPose2d_wpiRed();
-            }else{
-                return llresults.getBotPose2d_wpiBlue();
-            }
+            return llresults.getBotPose2d_wpiBlue();
         }
         /**
          * @param robotPose the current odometry pose

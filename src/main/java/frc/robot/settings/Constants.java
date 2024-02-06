@@ -443,7 +443,7 @@ public final class PathConstants{
 
   public static final Pose2d CLIMB__POSE = new Pose2d(12.19, 3.24, new Rotation2d(-61.23));
 
-  public static final Pose2d AMP_RED_POSE = new Pose2d(1.93, 0.5, new Rotation2d(-89.33));
+  public static final Pose2d AMP_RED_POSE = new Pose2d(14.6, 8, new Rotation2d(-89.33));
   public static final Pose2d AMP_BLUE_POSE = new Pose2d(1.93, 8, new Rotation2d(-89.33));
 
 }
