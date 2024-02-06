@@ -100,6 +100,14 @@ public class SwerveModule {
   public Rotation2d getRotation() {
     return Rotation2d.fromRotations(MathUtil.inputModulus(m_steerMotor.getPosition().getValue(), -0.5, 0.5));
   }
+    /**
+   * Returns a new encoder offset angle of the steer motor.
+   * @return a new encoder offset angle of the steer motor.
+   */
+  public double findOffset() {
+    return MathUtil.inputModulus((m_steerEncoder.getPosition().getValue() + m_steerEncoderOffset.getRotations()), -0.5, 0.5); 
+  }
+
   /**
    * Returns the target angle of the wheel.
    * @return The target angle of the wheel in degrees.

@@ -56,8 +56,6 @@ import frc.robot.settings.LimelightValues;
 import frc.robot.settings.Constants.CTREConfigs;
 import frc.robot.settings.Constants.DriveConstants;
 import frc.robot.settings.Constants.Vision;
-import frc.robot.settings.Constants.DriveConstants.Offsets;
-import frc.robot.settings.Constants.DriveConstants.Positions;
 import frc.robot.settings.Constants.Field;
 import frc.robot.settings.Constants.ShooterConstants;
 
@@ -117,10 +115,10 @@ public class DrivetrainSubsystem extends SubsystemBase {
 		this.lights = lights;
 		this.lightsExist = lightsExist;
 
-		Preferences.initString("FL", "AUGIE");
-		Preferences.initString("FR", "AUGIE");
-		Preferences.initString("BL", "AUGIE");
-		Preferences.initString("BR", "AUGIE");
+		Preferences.initDouble("FL", 0.0);
+		Preferences.initDouble("FR", 0.0);
+		Preferences.initDouble("BL", 0.0);
+		Preferences.initDouble("BR", 0.0);
 		PathPlannerLogging.setLogActivePathCallback((poses) -> m_field.getObject("path").setPoses(poses));
 		SmartDashboard.putData("Field", m_field);
 		SmartDashboard.putData("resetOdometry", new InstantCommand(() -> this.resetOdometry()));
@@ -132,28 +130,28 @@ public class DrivetrainSubsystem extends SubsystemBase {
 			FL_DRIVE_MOTOR_ID,
 			FL_STEER_MOTOR_ID,
 			FL_STEER_ENCODER_ID,
-			Offsets.valueOf(Preferences.getString("FL", "AUGIE")).getValue(Positions.FL),
+			Rotation2d.fromRotations(Preferences.getDouble("FL", 0.0)),
 			CANIVORE_DRIVETRAIN);
 		modules[1] = new SwerveModule(
 			"FR",
 			FR_DRIVE_MOTOR_ID,
 			FR_STEER_MOTOR_ID,
 			FR_STEER_ENCODER_ID,
-			Offsets.valueOf(Preferences.getString("FR", "AUGIE")).getValue(Positions.FR),
+			Rotation2d.fromRotations(Preferences.getDouble("FR", 0.0)),
 			CANIVORE_DRIVETRAIN);
 		modules[2] = new SwerveModule(
 			"BL",
 			BL_DRIVE_MOTOR_ID,
 			BL_STEER_MOTOR_ID,
 			BL_STEER_ENCODER_ID,
-			Offsets.valueOf(Preferences.getString("BL", "AUGIE")).getValue(Positions.BL),
+			Rotation2d.fromRotations(Preferences.getDouble("BL", 0.0)),
 			CANIVORE_DRIVETRAIN);
 		modules[3] = new SwerveModule(
 			"BR",
 			BR_DRIVE_MOTOR_ID,
 			BR_STEER_MOTOR_ID,
 			BR_STEER_ENCODER_ID,
-			Offsets.valueOf(Preferences.getString("BR", "AUGIE")).getValue(Positions.BR),
+			Rotation2d.fromRotations(Preferences.getDouble("FR", 0.0)),
 			CANIVORE_DRIVETRAIN);
 		
 		odometer = new SwerveDrivePoseEstimator(
@@ -210,6 +208,13 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public void resetOdometry() {
         odometer.resetPosition(getGyroscopeRotation(), getModulePositions(), DRIVE_ODOMETRY_ORIGIN);
     }
+	public void setModuleOffsets() {
+		Preferences.setDouble("FL", modules[0].findOffset());
+		Preferences.setDouble("FR", modules[1].findOffset());
+		Preferences.setDouble("BL", modules[2].findOffset());
+		Preferences.setDouble("BR", modules[3].findOffset());
+		System.out.println("OFFSETS SET. PLEASE RESTART ROBOT");
+	}
 	/**
 	 *  Sets the modules speed and rotation to zero.
 	 */

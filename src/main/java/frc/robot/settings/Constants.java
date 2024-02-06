@@ -36,53 +36,9 @@ public final class Constants {
   public static final int LED_COUNT = 52;
 
   public static final class DriveConstants {
-    public static final double ALLOWED_ERROR = 1;
-    public enum Positions{
-      FL(0),
-      FR(0.25),
-      BL(0.5),
-      BR(0.75);
-
-      private double rotation;
-
-      Positions(double value) {
-        rotation = value;
-
-      }
-      public double getValue() {
-        return rotation;
-      }
-    }
-    public enum Offsets{
-      AUGIE(0.153818),
-      BENH(0.153564),
-      EVELYN(-0.111084),
-      OMARIAHN(0.266846),
-      PHOEBE(-0.2458), //Moira FL
-      ROYCE(-0.0031), // Moira FR
-      ROWAN(0.3916), // Moira BL
-      QUINN(0.3557), //Moira BR
-      // PHOEBE(0.253174), //Moira FL
-      // ROYCE(-0.254639), // Moira FR
-      // ROWAN(-0.113525), // Moira BL
-      // QUINN(0.108154), //Moira BR
-      LIAM(0),
-      LEVI(-0.38501),
-      WILLA(-0.152832), //Moira inverted FL
-      OPAL(0.136475), //Moira inverted FR
-      CLOVER(0.239746), //Moira inverted BL
-      NICHOLAS(-0.164551); //Moira inverted BR
-
-      private double offset;
-      Offsets(double value) {
-        offset = value;
-      }
-      public Rotation2d getValue(Positions pos) {
-        return Rotation2d.fromRotations(MathUtil.inputModulus(offset+pos.getValue(), -0.5, 0.5));
-      }
-    }
     private DriveConstants() {
     }
+    public static final double ALLOWED_ERROR = 1;
     public static final Pose2d DRIVE_ODOMETRY_ORIGIN = new Pose2d(5.0, 5.0, new Rotation2d());
     /**
      * The bumper-to-bumper width of the robot.
